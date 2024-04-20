@@ -13,6 +13,10 @@ addLead(Lead LeadData) async {
   await c.db.collection("Companies").document(LeadData.companyId!).collection("leads").document(LeadData.id).set(LeadData.toMap());
 }
 
+updateLead(Lead LeadData) async {
+  print(LeadData.toJson().toString());
+  await c.db.collection("Companies").document(LeadData.companyId!).collection("leads").document(LeadData.id).update(LeadData.toMap());
+}
 
 
 

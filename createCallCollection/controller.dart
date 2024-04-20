@@ -19,7 +19,7 @@ class CallRecord {
         .collection("conversations")
         .document("telephony")
         .collection("call collection")
-        .document(callDetails.cuid!)
+        .document(callDetails.callId!)
         .set(callDetails.toMap());
   }
 
@@ -50,63 +50,83 @@ class CallRecord {
         .update({"agents": shiftedMap});
   }
 
+  // updating call record
+
   updateCallRecord(CreateCallCollection callDetails) async {
+    var callDetails2 = callDetails.toMap();
+
+    // Create a copy of the map
+    var callDetailsCopy = Map.from(callDetails2);
+
+    // Iterate over the copy and remove null values
+    callDetailsCopy.forEach((key, value) {
+      if (value == null) {
+        callDetails2.remove(key); // Modify the original map
+      }
+    });
+
+    print(callDetails2);
+
     await c.db
         .collection("Companies")
         .document(callDetails.companyID!)
         .collection("conversations")
         .document("telephony")
         .collection("call collection")
-        .document(callDetails.cuid!)
-        .update(callDetails.toMap())
-        .whenComplete(() async {
-      // if ((callDetails.recordingLink != null) &&
-      //     (callDetails.recordingLink!.isNotEmpty &&
-      //         callDetails.recordingLink != ""))
-      {
-    
-
-updateRecordingLink(callDetails.companyID.toString(), callDetails.cuid.toString(), callDetails.recordingLink.toString());
-
+        .document(callDetails.callId!)
+        .update(callDetails2)
+        .then((_) async {
+      // Perform further actions after the update
+      // Here, I've included the commented out code that you provided
+      if ((callDetails.recordingLink != null) &&
+          (callDetails.recordingLink!.isNotEmpty &&
+              callDetails.recordingLink != "")) {
+        // Delayed execution after 20 seconds
+        await Future.delayed(Duration(seconds: 20), () {
+          updateRecordingLink(
+              callDetails.companyID.toString(),
+              callDetails.callId.toString(),
+              callDetails.recordingLink.toString());
+        });
       }
-            
+    }).catchError((error) {
+      print("Error updating call record: $error");
+      // Handle the error accordingly
     });
   }
 
+  updateRecordingLink(
+      String companyId, String callId, String recordingLink) async {
+    print("recording url : $recordingLink");
 
+    var storagePath = "Companies/$companyId/CallRecordingCollection/$callId";
+    try {
+      // Fetch the file from the internet
+      var response = await http.get(Uri.parse(recordingLink));
+      if (response.statusCode == 200) {
+        // Create a reference to the Firebase Storage location
 
-updateRecordingLink(String companyId,String callId,String recordingLink) async {
-
-var storagePath= "Companies/$companyId/CallRecordingCollection/$callId";
-  try {
-    // Fetch the file from the internet
-    var response = await http.get(Uri.parse(recordingLink));
-    if (response.statusCode == 200) {
-      // Create a reference to the Firebase Storage location
-   
-      var ref = FirebaseStorage.instance.ref().child(storagePath);
-      // Upload the file to Firebase Storage
-      await ref.putData(response.bodyBytes);
-      // Get the download URL of the uploaded file
-      await ref.getDownloadURL().then((value) async {
-
-          c.db.collection("Comapanies").document(companyId).collection("conversations").document("telephony").collection("call collection").document(callId).update({
-"recordingLink":value.toString()
-
-          });
+        var ref = FirebaseStorage.instance.ref().child(storagePath);
+        // Upload the file to Firebase Storage
+        await ref.putData(response.bodyBytes);
+        // Get the download URL of the uploaded file
+        await ref.getDownloadURL().then((value) async {
+          c.db
+              .collection("Companies")
+              .document(companyId)
+              .collection("conversations")
+              .document("telephony")
+              .collection("call collection")
+              .document(callId)
+              .update({"recordingLink": value.toString()});
           print("recording uploaded");
-
-      });
-    } else {
-      print('Failed to fetch the file from the internet.');
-
+        });
+      } else {
+        print(response.statusCode);
+        print('Failed to fetch the file from the internet.');
+      }
+    } catch (error) {
+      print('Error uploading file: $error');
     }
-  } catch (error) {
-    print('Error uploading file: $error');
-
   }
-
-}
-
-
 }

@@ -13,7 +13,7 @@ Handler middleware(Handler handler) {
   // TODO: implement middleware
   return (context) async {
     if (Firestore.initialized == false) {
-      Firestore.initialize("healthcare7-7476f");
+      Firestore.initialize("cladbee-6554e");
       FirebaseDart.setup();
       await Firebase.initializeApp(options: FirebaseOptions.fromMap(config));
     }

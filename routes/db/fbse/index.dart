@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'dart:io';
@@ -8,6 +9,7 @@ import 'package:first_api/utis/constants.dart';
 
 import '../../../createCallCollection/controller.dart';
 import '../../../createCallCollection/models.dart';
+import '../../../fetchLiveCallApi/fetchLiveCallApiContinously.dart';
 
 var constant = Constants();
 
@@ -42,12 +44,22 @@ Future<Response> fetchCompanyID(RequestContext context) async {
   //start process
 
   final body = await context.request.json() as Map<String, dynamic>;
-print(body.toString());
+  print(body.toString());
   constant.didNumber = body["call_to_number"] as String;
   constant.callerNumber = body["caller_id_number"].toString();
 
-  constant.CIUD = body["call_id"] as String;
+  if (constant.callerNumber.toString().length == 11) {
+    constant.callerNumber = "+91" + constant.callerNumber!.substring(1);
+  } else if (constant.callerNumber.toString().length == 13) {
+    constant.callerNumber = "+91" + constant.callerNumber!.substring(3);
+  }
+
+  print(constant.callerNumber);
+
+  constant.CIUD = body["uuid"] as String;
   constant.callStartStamp = body["start_stamp"] as String;
+  constant.callerName = "";
+  constant.callId = body["call_id"] as String;
 
   await constant.db
       .collection("masterCollection")
@@ -58,6 +70,8 @@ print(body.toString());
       .then(
     (value) {
       constant.companyID = value[0]["companyId"] as String;
+      constant.source = value[0]["distributedAt"] as String;
+
       // print(constant.companyID);
     },
   );
@@ -77,12 +91,18 @@ Future<Response> checkLeadExists(
       .where("personalDetails.mobileNo", isEqualTo: constant.callerNumber)
       .get()
       .then((value) async {
-    if (value.toString() != "[]") {
+    if (value.toString() != "[]" &&
+        value[0]["owner"]["name"].toString() != "") {
+      print(value.toString());
+
       // this means lead exists and data is extracted and now goto emplyee collection to check weather employee is avaialbe or busy
       constant.empID = value[0]["owner"]["id"] as String;
       constant.empName = value[0]["owner"]["name"] as String;
       constant.empDesignation = value[0]["owner"]["designation"] as String;
       constant.baseID = value[0]["id"] as String;
+
+      constant.callerName = value[0]["personalDetails"]["name"] as String;
+
 
       await constant.db
           .collection("Companies")
@@ -91,57 +111,79 @@ Future<Response> checkLeadExists(
           .document(constant.empID!)
           .get()
           .then((value2) {
-        constant.empPhoneno = value2.map["phoneNo"] as String;
+        constant.empPhoneno = value2.map["phoneNumber"] as String;
 
         constant.empStatus = value2.map["status"] as String;
         // now we have extracted the emp phone no and status for exisiting lead
 
         if (constant.empStatus == "available") {
-          constant.agentNumbers.add(constant.empPhoneno);
+          constant.agentNumbers
+              .add(constant.empPhoneno.toString().split("+91")[1].toString());
 
           var resMap = [
             {
-              "transfer": {"type": "number", "data": constant.agentNumbers}
+              "recording": {"type": "system", "data": 137452}
+            },
+            {
+              "transfer": {
+                "type": "number",
+                "data": constant.agentNumbers,
+                "moh": "137444"
+              }
             }
           ];
 
-          //       CallRecord callrecord = CallRecord();
-          //       CreateCallCollection callDetails = CreateCallCollection(
-          //           companyID: constant.companyID,
-          //           cuid: constant.CIUD,
-          //           callerDid: constant.didNumber,
-          //           callerNumber: constant.callerNumber,
-          //           agentDid: "",
-          //           callStartStamp: constant.callStartStamp,
-          //           recordingLink: "",
-          //           agentid: constant.empID,
-          //           callStatus: "Started",
-          //           callTranfer: false,
-          //           callTransferIds: [],
-          //           department: "Sales",
-          //           isNewLeadCall: false,
-          //           baseID: constant.baseID,
-          //           isSmsSent: false,
-          //           callDateTime: DateTime.now().toString(),
-          //           advertisedNumber: false,
-          //           callDirection: "inbound",
-          //                 duration: "",
-          // source: "Sales",
-          // endStamp: "",
-          // ivrId: "",
-          // ivrName: "",);
+          print("DAsadsasd");
+          CreateCallCollection callDetails = CreateCallCollection(
+            companyID: constant.companyID,
+            cuid: constant.CIUD,
+            callerDid: constant.didNumber,
+            callerNumber: constant.callerNumber,
+            agentDid: "",
+            callStartStamp: constant.callStartStamp,
+            recordingLink: "",
+            agentid: constant.empID,
+            callStatus: "",
+            callTranfer: false,
+            callTransferIds: [],
+            department: "Sales",
+            isNewLeadCall: false,
+            baseID: constant.baseID,
+            isSmsSent: false,
+            callDateTime: DateTime.now().toString(),
+            advertisedNumber: false,
+            callDirection: "inbound",
+            duration: "",
+            source: constant.source,
+            endStamp: "",
+            ivrId: "",
+            ivrName: "",
+            agentDesignation: constant.empDesignation,
 
-          //       callrecord.addCallRecord(callDetails);
+            agentName: constant.empName,
+            agentPhoneNo: constant.empPhoneno,
+            callAnswerStamp: "",
+            callEndStamp: "",
+            currentCallStatus: "Started",
+            hangUpCause: "",
+            callerName: constant.callerName,
+            leadAssigned: true,
+            callId: constant.callId,
+          );
+
+          CallRecord callrecord = CallRecord();
+          callrecord.addCallRecord(callDetails);
+
           print("Number provided to customer : " +
-              constant.agentNumbers.toString());
-
-          log("Number provided to customer printing 2nd time : " +
-              constant.agentNumbers.toString());
-
-
+              constant.agentNumbers.toString().split("+91")[1]);
 
           mainres = resMap;
+          print(mainres);
           constant.agentNumbers = [];
+          constant.callId = "";
+          constant.companyID = "";
+          constant.CIUD = "";
+          constant.didNumber = "";
         } else {
           print("agent is busy on another call provided to customer");
           CallRecord callrecord = CallRecord();
@@ -165,7 +207,7 @@ Future<Response> checkLeadExists(
               advertisedNumber: false,
               callDirection: "inbound",
               duration: "",
-              source: "Sales",
+              source: constant.source,
               endStamp: "",
               ivrId: "11111",
               ivrName: "testivr",
@@ -175,7 +217,10 @@ Future<Response> checkLeadExists(
               callAnswerStamp: "",
               callEndStamp: "",
               currentCallStatus: "Ended",
-              hangUpCause: "Agent Busy Ended By IVR");
+              hangUpCause: "Agent Busy Ended By IVR",
+              callId: constant.callId,
+              leadAssigned: false,
+              callerName: "");
 
           callrecord.addCallRecord(callDetails);
 
@@ -185,10 +230,21 @@ Future<Response> checkLeadExists(
 
           var resMap = [
             {
+              "recording": {
+                "type": "system",
+                "data": 137452,
+              },
               "transfer": {"type": "ivr", "data": constant.agentNumbers}
             }
           ];
+
           mainres = resMap;
+          print(mainres);
+          constant.agentNumbers = [];
+          constant.callId = "";
+          constant.companyID = "";
+          constant.CIUD = "";
+          constant.didNumber = "";
         }
       });
     } else {
@@ -229,7 +285,7 @@ Future<Response> leadNotExists(RequestContext context) async {
                   .collection("telephony")
                   .document("conditions")
                   .collection("conditions")
-                  .document(value.map["departmentname"].toString() +
+                  .document(value.map["departmentName"].toString() +
                       "," +
                       value.map["projectId"].toString())
                   .get()
@@ -239,6 +295,9 @@ Future<Response> leadNotExists(RequestContext context) async {
                   for (int i = 0;
                       i < int.parse(value2.map["agents"].length.toString());
                       i++) {
+                    print("adsklnadsadjs,");
+
+                    print(i);
                     await constant.db
                         .collection("Companies")
                         .document(constant.companyID!)
@@ -247,8 +306,11 @@ Future<Response> leadNotExists(RequestContext context) async {
                         .get()
                         .then((value) {
                       if (value.map["status"].toString() == "available") {
-                        constant.agentNumbers
-                            .add(value.map["phoneNo"].toString());
+                        constant.agentNumbers.add(value.map["phoneNumber"]
+                            .toString()
+                            .split("+91")[1]);
+
+                        constant.agentDetails.add(value.map);
                       }
                     });
                   }
@@ -256,10 +318,14 @@ Future<Response> leadNotExists(RequestContext context) async {
                   if (constant.agentNumbers.length != 0) {
                     resMap = [
                       {
+                        "recording": {"type": "system", "data": 137452}
+                      },
+                      {
                         "transfer": {
                           "type": "number",
+                          "data": constant.agentNumbers,
                           "ring_type": "order_by",
-                          "data": constant.agentNumbers
+                          "moh": "137444"
                         }
                       }
                     ];
@@ -286,7 +352,7 @@ Future<Response> leadNotExists(RequestContext context) async {
                         advertisedNumber: false,
                         callDirection: "inbound",
                         duration: "",
-                        source: "Sales",
+                        source: constant.source,
                         endStamp: "",
                         ivrId: "11111",
                         ivrName: "testivr",
@@ -296,7 +362,9 @@ Future<Response> leadNotExists(RequestContext context) async {
                         callAnswerStamp: "",
                         callEndStamp: "",
                         currentCallStatus: "Ended",
-                        hangUpCause: "Agent Busy Ended By IVR");
+                        hangUpCause: "Agent Busy Ended By IVR",
+                        callId: constant.callId,
+                        callerName: "");
 
                     callrecord.addCallRecord(callDetails);
 
@@ -306,26 +374,49 @@ Future<Response> leadNotExists(RequestContext context) async {
 
                     resMap = [
                       {
+                        "recording": {"type": "system", "data": 137452}
+                      },
+                      {
                         "transfer": {
                           "type": "ivr",
-                          "data": constant.agentNumbers
+                          "data": constant.agentNumbers,
                         }
                       }
                     ];
                   }
 
                   mainres = resMap;
-                  constant.agentNumbers = [];
+
+                  startFetchingApiPeriodically(
+                      constant.callId.toString(),
+                      constant.companyID.toString(),
+                      "Round_Robin",
+                      constant.CIUD.toString(),
+                      constant.didNumber.toString(),
+                      constant.agentNumbers,
+                      constant.source.toString(),
+                      constant.agentDetails);
+                  print(mainres);
 
                   /// swapping now as the condtion is roundrobin
                   CallRecord callrecord = CallRecord();
                   callrecord.updateAgentMap(
                       value2.map["agents"] as Map<String, dynamic>,
                       constant.companyID!,
-                      value.map["departmentname"].toString() +
+                      value.map["departmentName"].toString() +
                           "," +
                           value.map["projectId"].toString());
+
+                  print(mainres);
+                  constant.agentNumbers = [];
+                  constant.agentDetails = [];
+                  constant.callId = "";
+                  constant.companyID = "";
+                  constant.CIUD = "";
+                  constant.didNumber = "";
                 } else {
+                  //smt
+
                   for (int i = 0;
                       i < int.parse(value2.map["agents"].length.toString());
                       i++) {
@@ -337,9 +428,11 @@ Future<Response> leadNotExists(RequestContext context) async {
                         .get()
                         .then((value) {
                       if (value.map["status"].toString() == "available") {
-                        constant.agentNumbers
-                            .add(value.map["phoneNo"].toString());
-                        print(constant.agentNumbers.toString());
+                        constant.agentNumbers.add(value.map["phoneNumber"]
+                            .toString()
+                            .split("+91")[1]);
+
+                        constant.agentDetails.add(value.map);
                       }
                     });
                   }
@@ -347,14 +440,19 @@ Future<Response> leadNotExists(RequestContext context) async {
                   if (constant.agentNumbers.length != 0) {
                     resMap = [
                       {
+                        "recording": {"type": "system", "data": 137452}
+                      },
+                      {
                         "transfer": {
                           "type": "number",
+                          "data": constant.agentNumbers,
                           "ring_type": "simantaneous",
-                          "data": constant.agentNumbers
+                          "moh": "137444"
                         }
                       }
                     ];
                   } else {
+
                     print("agent is busy on another call");
                     CallRecord callrecord = CallRecord();
                     CreateCallCollection callDetails = CreateCallCollection(
@@ -377,7 +475,7 @@ Future<Response> leadNotExists(RequestContext context) async {
                         advertisedNumber: false,
                         callDirection: "inbound",
                         duration: "",
-                        source: "Sales",
+                        source: constant.source,
                         endStamp: "",
                         ivrId: "11111",
                         ivrName: "testivr",
@@ -387,7 +485,8 @@ Future<Response> leadNotExists(RequestContext context) async {
                         callAnswerStamp: "",
                         callEndStamp: "",
                         currentCallStatus: "Ended",
-                        hangUpCause: "Agent Busy Ended By IVR");
+                        hangUpCause: "Agent Busy Ended By IVR",
+                        leadAssigned: false);
 
                     callrecord.addCallRecord(callDetails);
 
@@ -397,6 +496,9 @@ Future<Response> leadNotExists(RequestContext context) async {
 
                     resMap = [
                       {
+                        "recording": {"type": "system", "data": 137452}
+                      },
+                      {
                         "transfer": {
                           "type": "ivr",
                           "data": constant.agentNumbers
@@ -405,11 +507,37 @@ Future<Response> leadNotExists(RequestContext context) async {
                     ];
                   }
 
+                  startFetchingApiPeriodically(
+                      constant.callId.toString(),
+                      constant.companyID.toString(),
+                      "simantaneous",
+                      constant.CIUD.toString(),
+                      constant.didNumber.toString(),
+                      constant.agentNumbers,
+                      constant.source.toString(),
+                      constant.agentDetails);
+
+                  CallRecord callrecord = CallRecord();
+                  callrecord.updateAgentMap(
+                      value2.map["agents"] as Map<String, dynamic>,
+                      constant.companyID!,
+                      value.map["departmentName"].toString() +
+                          "," +
+                          value.map["projectId"].toString());
+
                   mainres = resMap;
+                  print(mainres);
                   constant.agentNumbers = [];
+                  constant.agentDetails = [];
+                  constant.callId = "";
+                  constant.companyID = "";
+                  constant.CIUD = "";
+                  constant.didNumber = "";
                 }
               })
             });
   }
+
+  print("data is here : " + jsonEncode(mainres));
   return Response.json(body: mainres);
 }

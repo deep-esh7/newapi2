@@ -34,7 +34,11 @@ class CreateCallCollection {
   String? callEndStamp;
   String? callAnswerStamp;
   String? hangUpCause;
-      String? currentCallStatus;
+  bool? leadAssigned;
+  String? currentCallStatus;
+  String? callerName;
+  String? callId;
+  String? condtitionType;
   CreateCallCollection({
     this.companyID,
     this.cuid,
@@ -65,7 +69,11 @@ class CreateCallCollection {
     this.callEndStamp,
     this.callAnswerStamp,
     this.hangUpCause,
+    this.leadAssigned,
     this.currentCallStatus,
+    this.callerName,
+    this.callId,
+    this.condtitionType,
   });
 
   CreateCallCollection copyWith({
@@ -98,7 +106,11 @@ class CreateCallCollection {
     String? callEndStamp,
     String? callAnswerStamp,
     String? hangUpCause,
+    bool? leadAssigned,
     String? currentCallStatus,
+    String? callerName,
+    String? callId,
+    String? condtitionType,
   }) {
     return CreateCallCollection(
       companyID: companyID ?? this.companyID,
@@ -130,7 +142,11 @@ class CreateCallCollection {
       callEndStamp: callEndStamp ?? this.callEndStamp,
       callAnswerStamp: callAnswerStamp ?? this.callAnswerStamp,
       hangUpCause: hangUpCause ?? this.hangUpCause,
+      leadAssigned: leadAssigned ?? this.leadAssigned,
       currentCallStatus: currentCallStatus ?? this.currentCallStatus,
+      callerName: callerName ?? this.callerName,
+      callId: callId ?? this.callId,
+      condtitionType: condtitionType ?? this.condtitionType,
     );
   }
 
@@ -165,7 +181,11 @@ class CreateCallCollection {
       'callEndStamp': callEndStamp,
       'callAnswerStamp': callAnswerStamp,
       'hangUpCause': hangUpCause,
+      'leadAssigned': leadAssigned,
       'currentCallStatus': currentCallStatus,
+      'callerName': callerName,
+      'callId': callId,
+      'condtitionType': condtitionType,
     };
   }
 
@@ -174,114 +194,153 @@ class CreateCallCollection {
       companyID: map['companyID'] != null ? map['companyID'] as String : null,
       cuid: map['cuid'] != null ? map['cuid'] as String : null,
       callerDid: map['callerDid'] != null ? map['callerDid'] as String : null,
-      callerNumber: map['callerNumber'] != null ? map['callerNumber'] as String : null,
+      callerNumber:
+          map['callerNumber'] != null ? map['callerNumber'] as String : null,
       agentDid: map['agentDid'] != null ? map['agentDid'] as String : null,
-      callStartStamp: map['callStartStamp'] != null ? map['callStartStamp'] as String : null,
-      recordingLink: map['recordingLink'] != null ? map['recordingLink'] as String : null,
+      callStartStamp: map['callStartStamp'] != null
+          ? map['callStartStamp'] as String
+          : null,
+      recordingLink:
+          map['recordingLink'] != null ? map['recordingLink'] as String : null,
       agentid: map['agentid'] != null ? map['agentid'] as String : null,
-      callStatus: map['callStatus'] != null ? map['callStatus'] as String : null,
-      callTranfer: map['callTranfer'] != null ? map['callTranfer'] as bool : null,
-      callTransferIds: map['callTransferIds'] != null ? List<String>.from((map['callTransferIds'] as List<String>)) : null,
-      department: map['department'] != null ? map['department'] as String : null,
-      isNewLeadCall: map['isNewLeadCall'] != null ? map['isNewLeadCall'] as bool : null,
+      callStatus:
+          map['callStatus'] != null ? map['callStatus'] as String : null,
+      callTranfer:
+          map['callTranfer'] != null ? map['callTranfer'] as bool : null,
+      callTransferIds: map['callTransferIds'] != null
+          ? List<String>.from((map['callTransferIds'] as List<String>))
+          : null,
+      department:
+          map['department'] != null ? map['department'] as String : null,
+      isNewLeadCall:
+          map['isNewLeadCall'] != null ? map['isNewLeadCall'] as bool : null,
       baseID: map['baseID'] != null ? map['baseID'] as String : null,
       isSmsSent: map['isSmsSent'] != null ? map['isSmsSent'] as bool : null,
-      callDateTime: map['callDateTime'] != null ? map['callDateTime'] as String : null,
-      advertisedNumber: map['advertisedNumber'] != null ? map['advertisedNumber'] as bool : null,
-      callDirection: map['callDirection'] != null ? map['callDirection'] as String : null,
+      callDateTime:
+          map['callDateTime'] != null ? map['callDateTime'] as String : null,
+      advertisedNumber: map['advertisedNumber'] != null
+          ? map['advertisedNumber'] as bool
+          : null,
+      callDirection:
+          map['callDirection'] != null ? map['callDirection'] as String : null,
       endStamp: map['endStamp'] != null ? map['endStamp'] as String : null,
       duration: map['duration'] != null ? map['duration'] as String : null,
       source: map['source'] != null ? map['source'] as String : null,
       ivrName: map['ivrName'] != null ? map['ivrName'] as String : null,
       ivrId: map['ivrId'] != null ? map['ivrId'] as String : null,
-      agentPhoneNo: map['agentPhoneNo'] != null ? map['agentPhoneNo'] as String : null,
+      agentPhoneNo:
+          map['agentPhoneNo'] != null ? map['agentPhoneNo'] as String : null,
       agentName: map['agentName'] != null ? map['agentName'] as String : null,
-      agentDesignation: map['agentDesignation'] != null ? map['agentDesignation'] as String : null,
-      callEndStamp: map['callEndStamp'] != null ? map['callEndStamp'] as String : null,
-      callAnswerStamp: map['callAnswerStamp'] != null ? map['callAnswerStamp'] as String : null,
-      hangUpCause: map['hangUpCause'] != null ? map['hangUpCause'] as String : null,
-      currentCallStatus: map['currentCallStatus'] != null ? map['currentCallStatus'] as String : null,
+      agentDesignation: map['agentDesignation'] != null
+          ? map['agentDesignation'] as String
+          : null,
+      callEndStamp:
+          map['callEndStamp'] != null ? map['callEndStamp'] as String : null,
+      callAnswerStamp: map['callAnswerStamp'] != null
+          ? map['callAnswerStamp'] as String
+          : null,
+      hangUpCause:
+          map['hangUpCause'] != null ? map['hangUpCause'] as String : null,
+      leadAssigned:
+          map['leadAssigned'] != null ? map['leadAssigned'] as bool : null,
+      currentCallStatus: map['currentCallStatus'] != null
+          ? map['currentCallStatus'] as String
+          : null,
+      callerName:
+          map['callerName'] != null ? map['callerName'] as String : null,
+      callId: map['callId'] != null ? map['callId'] as String : null,
+      condtitionType: map['condtitionType'] != null
+          ? map['condtitionType'] as String
+          : null,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory CreateCallCollection.fromJson(String source) => CreateCallCollection.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory CreateCallCollection.fromJson(String source) =>
+      CreateCallCollection.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() {
-    return 'CreateCallCollection(companyID: $companyID, cuid: $cuid, callerDid: $callerDid, callerNumber: $callerNumber, agentDid: $agentDid, callStartStamp: $callStartStamp, recordingLink: $recordingLink, agentid: $agentid, callStatus: $callStatus, callTranfer: $callTranfer, callTransferIds: $callTransferIds, department: $department, isNewLeadCall: $isNewLeadCall, baseID: $baseID, isSmsSent: $isSmsSent, callDateTime: $callDateTime, advertisedNumber: $advertisedNumber, callDirection: $callDirection, endStamp: $endStamp, duration: $duration, source: $source, ivrName: $ivrName, ivrId: $ivrId, agentPhoneNo: $agentPhoneNo, agentName: $agentName, agentDesignation: $agentDesignation, callEndStamp: $callEndStamp, callAnswerStamp: $callAnswerStamp, hangUpCause: $hangUpCause, currentCallStatus: $currentCallStatus)';
+    return 'CreateCallCollection(companyID: $companyID, cuid: $cuid, callerDid: $callerDid, callerNumber: $callerNumber, agentDid: $agentDid, callStartStamp: $callStartStamp, recordingLink: $recordingLink, agentid: $agentid, callStatus: $callStatus, callTranfer: $callTranfer, callTransferIds: $callTransferIds, department: $department, isNewLeadCall: $isNewLeadCall, baseID: $baseID, isSmsSent: $isSmsSent, callDateTime: $callDateTime, advertisedNumber: $advertisedNumber, callDirection: $callDirection, endStamp: $endStamp, duration: $duration, source: $source, ivrName: $ivrName, ivrId: $ivrId, agentPhoneNo: $agentPhoneNo, agentName: $agentName, agentDesignation: $agentDesignation, callEndStamp: $callEndStamp, callAnswerStamp: $callAnswerStamp, hangUpCause: $hangUpCause, leadAssigned: $leadAssigned, currentCallStatus: $currentCallStatus, callerName: $callerName, callId: $callId, condtitionType: $condtitionType)';
   }
 
   @override
   bool operator ==(covariant CreateCallCollection other) {
     if (identical(this, other)) return true;
     final listEquals = const DeepCollectionEquality().equals;
-  
-    return 
-      other.companyID == companyID &&
-      other.cuid == cuid &&
-      other.callerDid == callerDid &&
-      other.callerNumber == callerNumber &&
-      other.agentDid == agentDid &&
-      other.callStartStamp == callStartStamp &&
-      other.recordingLink == recordingLink &&
-      other.agentid == agentid &&
-      other.callStatus == callStatus &&
-      other.callTranfer == callTranfer &&
-      listEquals(other.callTransferIds, callTransferIds) &&
-      other.department == department &&
-      other.isNewLeadCall == isNewLeadCall &&
-      other.baseID == baseID &&
-      other.isSmsSent == isSmsSent &&
-      other.callDateTime == callDateTime &&
-      other.advertisedNumber == advertisedNumber &&
-      other.callDirection == callDirection &&
-      other.endStamp == endStamp &&
-      other.duration == duration &&
-      other.source == source &&
-      other.ivrName == ivrName &&
-      other.ivrId == ivrId &&
-      other.agentPhoneNo == agentPhoneNo &&
-      other.agentName == agentName &&
-      other.agentDesignation == agentDesignation &&
-      other.callEndStamp == callEndStamp &&
-      other.callAnswerStamp == callAnswerStamp &&
-      other.hangUpCause == hangUpCause &&
-      other.currentCallStatus == currentCallStatus;
+
+    return other.companyID == companyID &&
+        other.cuid == cuid &&
+        other.callerDid == callerDid &&
+        other.callerNumber == callerNumber &&
+        other.agentDid == agentDid &&
+        other.callStartStamp == callStartStamp &&
+        other.recordingLink == recordingLink &&
+        other.agentid == agentid &&
+        other.callStatus == callStatus &&
+        other.callTranfer == callTranfer &&
+        listEquals(other.callTransferIds, callTransferIds) &&
+        other.department == department &&
+        other.isNewLeadCall == isNewLeadCall &&
+        other.baseID == baseID &&
+        other.isSmsSent == isSmsSent &&
+        other.callDateTime == callDateTime &&
+        other.advertisedNumber == advertisedNumber &&
+        other.callDirection == callDirection &&
+        other.endStamp == endStamp &&
+        other.duration == duration &&
+        other.source == source &&
+        other.ivrName == ivrName &&
+        other.ivrId == ivrId &&
+        other.agentPhoneNo == agentPhoneNo &&
+        other.agentName == agentName &&
+        other.agentDesignation == agentDesignation &&
+        other.callEndStamp == callEndStamp &&
+        other.callAnswerStamp == callAnswerStamp &&
+        other.hangUpCause == hangUpCause &&
+        other.leadAssigned == leadAssigned &&
+        other.currentCallStatus == currentCallStatus &&
+        other.callerName == callerName &&
+        other.callId == callId &&
+        other.condtitionType == condtitionType;
   }
 
   @override
   int get hashCode {
     return companyID.hashCode ^
-      cuid.hashCode ^
-      callerDid.hashCode ^
-      callerNumber.hashCode ^
-      agentDid.hashCode ^
-      callStartStamp.hashCode ^
-      recordingLink.hashCode ^
-      agentid.hashCode ^
-      callStatus.hashCode ^
-      callTranfer.hashCode ^
-      callTransferIds.hashCode ^
-      department.hashCode ^
-      isNewLeadCall.hashCode ^
-      baseID.hashCode ^
-      isSmsSent.hashCode ^
-      callDateTime.hashCode ^
-      advertisedNumber.hashCode ^
-      callDirection.hashCode ^
-      endStamp.hashCode ^
-      duration.hashCode ^
-      source.hashCode ^
-      ivrName.hashCode ^
-      ivrId.hashCode ^
-      agentPhoneNo.hashCode ^
-      agentName.hashCode ^
-      agentDesignation.hashCode ^
-      callEndStamp.hashCode ^
-      callAnswerStamp.hashCode ^
-      hangUpCause.hashCode ^
-      currentCallStatus.hashCode;
+        cuid.hashCode ^
+        callerDid.hashCode ^
+        callerNumber.hashCode ^
+        agentDid.hashCode ^
+        callStartStamp.hashCode ^
+        recordingLink.hashCode ^
+        agentid.hashCode ^
+        callStatus.hashCode ^
+        callTranfer.hashCode ^
+        callTransferIds.hashCode ^
+        department.hashCode ^
+        isNewLeadCall.hashCode ^
+        baseID.hashCode ^
+        isSmsSent.hashCode ^
+        callDateTime.hashCode ^
+        advertisedNumber.hashCode ^
+        callDirection.hashCode ^
+        endStamp.hashCode ^
+        duration.hashCode ^
+        source.hashCode ^
+        ivrName.hashCode ^
+        ivrId.hashCode ^
+        agentPhoneNo.hashCode ^
+        agentName.hashCode ^
+        agentDesignation.hashCode ^
+        callEndStamp.hashCode ^
+        callAnswerStamp.hashCode ^
+        hangUpCause.hashCode ^
+        leadAssigned.hashCode ^
+        currentCallStatus.hashCode ^
+        callerName.hashCode ^
+        callId.hashCode ^
+        condtitionType.hashCode;
   }
-      }
+}

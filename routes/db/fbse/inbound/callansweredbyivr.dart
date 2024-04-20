@@ -66,11 +66,11 @@ print(body.toString());
           .collection("Companies")
           .document(constant.companyID!)
           .collection("Employees")
-          .where("phoneNo", isEqualTo: constant.answeredAgentNo)
+          .where("phoneNumber", isEqualTo: constant.answeredAgentNo)
           .get()
           .then((value2) {
         constant.empID = value2[0]["id"].toString();
-        constant.empPhoneno = value2[0]["phoneNo"].toString();
+        constant.empPhoneno = value2[0]["phoneNumber"].toString();
         constant.empDesignation = value2[0]["designation"].toString();
         constant.empName = value2[0]["name"].toString();
       });
